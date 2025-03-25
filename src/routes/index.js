@@ -2,6 +2,8 @@ const express = require("express");
 const { Pool } = require("pg");
 const userRoutes = require("./userRoutes");
 const authRoutes = require("./authRoutes");
+const jobRoutes = require('./jobRoutes');  // Agrega esta línea
+const companyRoutes = require('./companyRoutes');
 
 const router = express.Router();
 
@@ -17,5 +19,8 @@ const pool = new Pool({
 // Ruta de conexión a PostgreSQL
 router.use("/users", userRoutes);
 router.use("/auth", authRoutes);
+router.use('/jobs', jobRoutes); 
+router.use('/companies', companyRoutes);
+
 
 module.exports = router;

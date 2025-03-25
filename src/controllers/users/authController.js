@@ -1,7 +1,12 @@
-const pool = require('../../config/db');
-const authService = require('../../services/authService');
-const emailService = require('../../services/emailService');
-const { NotFoundError, AuthenticationError, ForbiddenError, ConflictError } = require('../../utils/errorClasses');
+const pool = require("../../config/db");
+const authService = require("../../services/authService");
+const emailService = require("../../services/emailService");
+const {
+  NotFoundError,
+  AuthenticationError,
+  ForbiddenError,
+  ConflictError,
+} = require("../../utils/errorClasses");
 
 // Obtener todos los usuarios
 const getUsers = async (req, res, next) => {
@@ -48,27 +53,33 @@ const createUser = async (req, res, next) => {
 
     // Crear el usuario
     const user = await authService.createUser({
-      nombre, 
-      correo, 
-      clave: hashedPassword, 
-      sexo, 
-      verificado: false, 
-      token_verificacion: verificationToken
+      nombre,
+      correo,
+      clave: hashedPassword,
+      sexo,
+      verificado: false,
+      token_verificacion: verificationToken,
     });
 
     // Enviar correo de verificación
     try {
-      await emailService.sendVerificationEmail(correo, nombre, verificationToken);
+      await emailService.sendVerificationEmail(
+        correo,
+        nombre,
+        verificationToken
+      );
       res.status(201).json({
-        message: "Usuario registrado correctamente. Se envió un correo de verificación.",
-        user
+        message:
+          "Usuario registrado correctamente. Se envió un correo de verificación.",
+        user,
       });
     } catch (emailError) {
       console.error("Error al enviar correo:", emailError);
       res.status(201).json({
-        message: "Usuario registrado correctamente, pero hubo un problema al enviar el correo de verificación.",
+        message:
+          "Usuario registrado correctamente, pero hubo un problema al enviar el correo de verificación.",
         user,
-        verificationToken
+        verificationToken,
       });
     }
   } catch (error) {
@@ -76,34 +87,47 @@ const createUser = async (req, res, next) => {
   }
 };
 
-// Iniciar sesión
+// En src/controllers/users/authController.js - función loginUser
 const loginUser = async (req, res, next) => {
   const { correo, clave } = req.body;
 
   try {
     const user = await authService.findUserByEmail(correo);
-    
+
     if (!user) {
-      return next(new AuthenticationError('Correo o contraseña incorrectos'));
+      return next(new AuthenticationError("Correo o contraseña incorrectos"));
     }
 
     // Verificar si el usuario está verificado
     if (!user.verificado) {
-      return next(new ForbiddenError('Debe verificar su cuenta para iniciar sesión'));
+      return next(
+        new ForbiddenError("Debe verificar su cuenta para iniciar sesión")
+      );
     }
 
     // Comparar contraseñas
     const isMatch = await authService.comparePasswords(clave, user.clave);
     if (!isMatch) {
-      return next(new AuthenticationError('Correo o contraseña incorrectos'));
+      return next(new AuthenticationError("Correo o contraseña incorrectos"));
     }
 
     // Crear token JWT
-    const token = authService.generateToken({ id: user.id, correo: user.correo });
+    const token = authService.generateToken({
+      id: user.id,
+      correo: user.correo,
+      rol: user.rol,
+      empresa_id: user.empresa_id,
+    });
 
     res.json({
       token,
-      user: { id: user.id, nombre: user.nombre, correo: user.correo },
+      user: {
+        id: user.id,
+        nombre: user.nombre,
+        correo: user.correo,
+        rol: user.rol,
+        empresa_id: user.empresa_id,
+      },
     });
   } catch (error) {
     next(error);
@@ -127,5 +151,5 @@ module.exports = {
   getUserById,
   createUser,
   loginUser,
-  verifyUser
+  verifyUser,
 };

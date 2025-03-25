@@ -15,7 +15,10 @@ router.post('/password-reset-request', validatePasswordResetRequest, validateReq
 router.post('/password-reset/:token', validatePasswordReset, validateRequest, passwordController.resetPassword);
 
 //* Nueva ruta para obtener usuario por email (protegida)*
-router.get('/email/:email', protect, getUserByEmail);
+router.get('/email/:email', /* protect, */ getUserByEmail); //protect pedir token para acceder a la ruta
+
+
+
 
 //* Rutas protegidas (requieren autenticación)*
 router.get('/', protect, authController.getUsers);
