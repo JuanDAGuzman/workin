@@ -4,12 +4,10 @@ const emailService = require('../../services/emailService');
 const pool = require('../../config/db');
 const { NotFoundError, AuthenticationError } = require('../../utils/errorClasses');
 
-// Función para solicitar restablecimiento de contraseña
 const requestPasswordReset = async (req, res, next) => {
   const { correo } = req.body;
 
   try {
-    // Verificar si el usuario existe
     const userResult = await pool.query(
       "SELECT id, nombre FROM users WHERE correo = $1",
       [correo]
@@ -45,7 +43,6 @@ const requestPasswordReset = async (req, res, next) => {
   }
 };
 
-// Función para restablecer contraseña
 const resetPassword = async (req, res, next) => {
   const { token } = req.params;
   const { nuevaClave } = req.body;

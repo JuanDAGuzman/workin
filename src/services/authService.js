@@ -21,7 +21,6 @@ const createUser = async (userData) => {
     rol = "usuario",
   } = userData;
 
-  // Verificar si el usuario ya existe
   const userExists = await pool.query(
     "SELECT id FROM users WHERE correo = $1",
     [correo]

@@ -8,7 +8,6 @@ const {
   ConflictError,
 } = require("../../utils/errorClasses");
 
-// Obtener todos los usuarios
 const getUsers = async (req, res, next) => {
   try {
     const result = await pool.query("SELECT id, nombre, correo FROM users");
@@ -18,7 +17,6 @@ const getUsers = async (req, res, next) => {
   }
 };
 
-// Obtener un usuario por ID
 const getUserById = async (req, res, next) => {
   const { id } = req.params;
   try {
@@ -39,7 +37,6 @@ const createUser = async (req, res, next) => {
   const { nombre, correo, clave, sexo } = req.body;
 
   try {
-    // Verificar si el usuario ya existe
     const existingUser = await authService.findUserByEmail(correo);
     if (existingUser) {
       return next(new ConflictError("El correo ya está registrado"));
@@ -51,7 +48,6 @@ const createUser = async (req, res, next) => {
     // Generar un token de verificación
     const verificationToken = authService.generateToken({ correo });
 
-    // Crear el usuario
     const user = await authService.createUser({
       nombre,
       correo,
@@ -87,7 +83,6 @@ const createUser = async (req, res, next) => {
   }
 };
 
-// En src/controllers/users/authController.js - función loginUser
 const loginUser = async (req, res, next) => {
   const { correo, clave } = req.body;
 

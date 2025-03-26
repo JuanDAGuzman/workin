@@ -10,7 +10,7 @@ const { errorHandler, notFoundHandler } = require("./src/middleware/errorMiddlew
 const grpc = require("@grpc/grpc-js");
 const protoLoader = require("@grpc/proto-loader");
 
-// Configurar la conexión a PostgreSQL
+// conexión a PostgreSQL
 const pool = new Pool({
   user: process.env.DB_USER,
   host: process.env.DB_HOST,
@@ -19,7 +19,7 @@ const pool = new Pool({
   port: process.env.DB_PORT
 });
 
-// Verificar la conexión a la base de datos
+// conexión a la base de datos
 pool.connect()
   .then(() => console.log("🟢 Conectado a PostgreSQL"))
   .catch(err => console.error("🔴 Error de conexión a PostgreSQL", err));

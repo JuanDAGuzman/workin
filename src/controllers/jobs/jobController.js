@@ -1,4 +1,3 @@
-// src/controllers/jobs/jobController.js
 const pool = require("../../config/db");
 const { NotFoundError, ForbiddenError } = require("../../utils/errorClasses");
 
@@ -10,13 +9,15 @@ const getJobs = async (req, res, next) => {
       limit = 10,
       empresa_id,
       titulo,
+      salario_min,
+      salario_max,
       ordenar_por = "fecha_publicacion",
       orden = "DESC",
     } = req.query;
 
     const offset = (page - 1) * limit;
 
-    // Construir la consulta base - usando la tabla "empresas" en lugar de "companies"
+    // Construir la consulta base
     let query = `
       SELECT e.*, emp.nombre as nombre_empresa
       FROM empleos e
@@ -40,6 +41,18 @@ const getJobs = async (req, res, next) => {
       paramCount++;
     }
 
+    if (salario_min) {
+      query += ` AND e.salario >= $${paramCount}`;
+      params.push(salario_min);
+      paramCount++;
+    }
+
+    if (salario_max) {
+      query += ` AND e.salario <= $${paramCount}`;
+      params.push(salario_max);
+      paramCount++;
+    }
+
     // Agregar ordenamiento
     query += ` ORDER BY e.${ordenar_por} ${orden}`;
 
@@ -58,6 +71,10 @@ const getJobs = async (req, res, next) => {
     if (empresa_id) countQuery += ` AND e.empresa_id = $1`;
     if (titulo)
       countQuery += ` AND e.titulo ILIKE $${params.indexOf(titulo) + 1}`;
+    if (salario_min)
+      countQuery += ` AND e.salario >= $${params.indexOf(salario_min) + 1}`;
+    if (salario_max)
+      countQuery += ` AND e.salario <= $${params.indexOf(salario_max) + 1}`;
 
     // Ejecutar ambas consultas
     const jobsResult = await pool.query(query, params);
@@ -80,7 +97,6 @@ const getJobs = async (req, res, next) => {
   }
 };
 
-// Obtener un empleo por ID
 const getJobById = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -107,20 +123,50 @@ const getJobById = async (req, res, next) => {
 
 const createJob = async (req, res, next) => {
   try {
-    const { titulo, descripcion, requisitos, empresa_id } = req.body;
+    const { titulo, descripcion, requisitos, salario, empresa_id } = req.body;
+
+    // Verificar si el usuario es parte de la empresa o es admin
+    if (req.user.rol !== "admin" && req.user.rol !== "empresa") {
+      return next(
+        new ForbiddenError("No tienes permiso para publicar empleos")
+      );
+    }
 
     // Si es empresa, solo puede crear empleos para su propia empresa
-    // Nota: En un sistema real, necesitarías una manera de relacionar usuarios con empresas
+    if (req.user.rol === "empresa" && req.user.empresa_id != empresa_id) {
+      return next(
+        new ForbiddenError("Solo puede crear empleos para su propia empresa")
+      );
+    }
+
+    if (req.user.rol !== "admin") {
+      const companyResult = await pool.query(
+        "SELECT verificada FROM empresas WHERE id = $1",
+        [empresa_id]
+      );
+
+      if (companyResult.rows.length === 0) {
+        return next(new NotFoundError("Empresa no encontrada"));
+      }
+
+      if (!companyResult.rows[0].verificada) {
+        return next(
+          new ForbiddenError(
+            "Tu empresa aún no ha sido verificada. No puedes publicar empleos hasta que un administrador verifique tu empresa."
+          )
+        );
+      }
+    }
 
     const result = await pool.query(
       `
-        INSERT INTO empleos (
-          titulo, descripcion, requisitos, empresa_id, fecha_publicacion
-        ) VALUES (
-          $1, $2, $3, $4, NOW()
-        ) RETURNING *
-      `,
-      [titulo, descripcion, requisitos, empresa_id]
+      INSERT INTO empleos (
+        titulo, descripcion, requisitos, salario, empresa_id, fecha_publicacion
+      ) VALUES (
+        $1, $2, $3, $4, $5, NOW()
+      ) RETURNING *
+    `,
+      [titulo, descripcion, requisitos, salario, empresa_id]
     );
 
     res.status(201).json(result.rows[0]);
@@ -129,11 +175,10 @@ const createJob = async (req, res, next) => {
   }
 };
 
-// Actualizar un empleo
 const updateJob = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { titulo, descripcion, requisitos } = req.body;
+    const { titulo, descripcion, requisitos, salario } = req.body;
 
     // Verificar si el empleo existe
     const jobResult = await pool.query("SELECT * FROM empleos WHERE id = $1", [
@@ -147,23 +192,26 @@ const updateJob = async (req, res, next) => {
     const job = jobResult.rows[0];
 
     // Verificar permisos (solo admin o empresa pueden actualizar)
-    if (req.user.rol !== "admin" && req.user.rol !== "empresa") {
+    if (
+      req.user.rol !== "admin" &&
+      (req.user.rol !== "empresa" || req.user.empresa_id != job.empresa_id)
+    ) {
       return next(
         new ForbiddenError("No tienes permiso para actualizar este empleo")
       );
     }
 
-    // Actualizar el empleo
     const result = await pool.query(
       `
       UPDATE empleos SET
         titulo = COALESCE($1, titulo),
         descripcion = COALESCE($2, descripcion),
-        requisitos = COALESCE($3, requisitos)
-      WHERE id = $4
+        requisitos = COALESCE($3, requisitos),
+        salario = COALESCE($4, salario)
+      WHERE id = $5
       RETURNING *
     `,
-      [titulo, descripcion, requisitos, id]
+      [titulo, descripcion, requisitos, salario, id]
     );
 
     res.json(result.rows[0]);
@@ -177,7 +225,6 @@ const deleteJob = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    // Verificar si el empleo existe
     const jobResult = await pool.query("SELECT * FROM empleos WHERE id = $1", [
       id,
     ]);
@@ -186,14 +233,17 @@ const deleteJob = async (req, res, next) => {
       return next(new NotFoundError("Empleo no encontrado"));
     }
 
-    // Verificar permisos
-    if (req.user.rol !== "admin" && req.user.rol !== "empresa") {
+    const job = jobResult.rows[0];
+
+    if (
+      req.user.rol !== "admin" &&
+      (req.user.rol !== "empresa" || req.user.empresa_id != job.empresa_id)
+    ) {
       return next(
         new ForbiddenError("No tienes permiso para eliminar este empleo")
       );
     }
 
-    // Eliminar el empleo
     await pool.query("DELETE FROM empleos WHERE id = $1", [id]);
 
     res.json({ message: "Empleo eliminado correctamente" });

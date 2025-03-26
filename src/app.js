@@ -24,10 +24,10 @@ app.use("/api/companies", companyRoutes);
 app.use("/api/applications", applicationRoutes);
 app.use("/api/support", supportRoutes);
 
-// Manejar rutas no encontradas - IMPORTANTE: debe estar después de todas las rutas
+// Manejar rutas no encontradas
 app.all('*', notFoundHandler);
 
-// Middleware de manejo de errores - IMPORTANTE: debe ser el último middleware
+// Middleware de manejo de errores 
 app.use(errorHandler);
 
 module.exports = app;

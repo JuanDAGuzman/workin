@@ -29,7 +29,6 @@ const getUserByEmail = async (req, res, next) => {
 
     res.status(200).json(userWithoutPassword);
   } catch (error) {
-    // Pasar el error al middleware de manejo de errores
     next(error);
   }
 };
