@@ -1,16 +1,16 @@
-const pool = require("../../config/db");
-const authService = require("../../services/authService");
-const emailService = require("../../services/emailService");
+const pool = require('../../config/db');
+const authService = require('../../services/authService');
+const emailService = require('../../services/emailService');
 const {
   NotFoundError,
   AuthenticationError,
   ForbiddenError,
   ConflictError,
-} = require("../../utils/errorClasses");
+} = require('../../utils/errorClasses');
 
 const getUsers = async (req, res, next) => {
   try {
-    const result = await pool.query("SELECT id, nombre, correo FROM users");
+    const result = await pool.query('SELECT id, nombre, correo FROM users');
     res.json(result.rows);
   } catch (error) {
     next(error);
@@ -21,11 +21,11 @@ const getUserById = async (req, res, next) => {
   const { id } = req.params;
   try {
     const result = await pool.query(
-      "SELECT id, nombre, correo FROM users WHERE id = $1",
+      'SELECT id, nombre, correo FROM users WHERE id = $1',
       [id]
     );
     if (result.rows.length === 0) {
-      return next(new NotFoundError("Usuario no encontrado"));
+      return next(new NotFoundError('Usuario no encontrado'));
     }
     res.json(result.rows[0]);
   } catch (error) {
@@ -39,7 +39,7 @@ const createUser = async (req, res, next) => {
   try {
     const existingUser = await authService.findUserByEmail(correo);
     if (existingUser) {
-      return next(new ConflictError("El correo ya está registrado"));
+      return next(new ConflictError('El correo ya está registrado'));
     }
 
     // Encriptar contraseña
@@ -66,14 +66,14 @@ const createUser = async (req, res, next) => {
       );
       res.status(201).json({
         message:
-          "Usuario registrado correctamente. Se envió un correo de verificación.",
+          'Usuario registrado correctamente. Se envió un correo de verificación.',
         user,
       });
     } catch (emailError) {
-      console.error("Error al enviar correo:", emailError);
+      console.error('Error al enviar correo:', emailError);
       res.status(201).json({
         message:
-          "Usuario registrado correctamente, pero hubo un problema al enviar el correo de verificación.",
+          'Usuario registrado correctamente, pero hubo un problema al enviar el correo de verificación.',
         user,
         verificationToken,
       });
@@ -90,20 +90,20 @@ const loginUser = async (req, res, next) => {
     const user = await authService.findUserByEmail(correo);
 
     if (!user) {
-      return next(new AuthenticationError("Correo o contraseña incorrectos"));
+      return next(new AuthenticationError('Correo o contraseña incorrectos'));
     }
 
     // Verificar si el usuario está verificado
     if (!user.verificado) {
       return next(
-        new ForbiddenError("Debe verificar su cuenta para iniciar sesión")
+        new ForbiddenError('Debe verificar su cuenta para iniciar sesión')
       );
     }
 
     // Comparar contraseñas
     const isMatch = await authService.comparePasswords(clave, user.clave);
     if (!isMatch) {
-      return next(new AuthenticationError("Correo o contraseña incorrectos"));
+      return next(new AuthenticationError('Correo o contraseña incorrectos'));
     }
 
     // Crear token JWT
@@ -134,10 +134,10 @@ const verifyUser = async (req, res, next) => {
   try {
     await authService.verifyUserToken(token);
     res.json({
-      message: "Cuenta verificada con éxito. Ya puedes iniciar sesión.",
+      message: 'Cuenta verificada con éxito. Ya puedes iniciar sesión.',
     });
   } catch (error) {
-    next(new AuthenticationError("Token inválido o expirado"));
+    next(new AuthenticationError('Token inválido o expirado'));
   }
 };
 

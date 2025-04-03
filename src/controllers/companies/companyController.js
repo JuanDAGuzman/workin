@@ -1,9 +1,9 @@
-const pool = require("../../config/db");
+const pool = require('../../config/db');
 const {
   NotFoundError,
   ForbiddenError,
   ConflictError,
-} = require("../../utils/errorClasses");
+} = require('../../utils/errorClasses');
 
 const getCompanies = async (req, res, next) => {
   try {
@@ -33,7 +33,7 @@ const getCompanyById = async (req, res, next) => {
     );
 
     if (result.rows.length === 0) {
-      return next(new NotFoundError("Empresa no encontrada"));
+      return next(new NotFoundError('Empresa no encontrada'));
     }
 
     const jobsResult = await pool.query(
@@ -64,15 +64,15 @@ const createCompany = async (req, res, next) => {
   try {
     // Verificar si ya existe una empresa con el mismo nombre
     const existingCompany = await pool.query(
-      "SELECT id FROM empresas WHERE nombre = $1",
+      'SELECT id FROM empresas WHERE nombre = $1',
       [nombre]
     );
 
     if (existingCompany.rows.length > 0) {
-      return next(new ConflictError("Ya existe una empresa con este nombre"));
+      return next(new ConflictError('Ya existe una empresa con este nombre'));
     }
 
-    await pool.query("BEGIN");
+    await pool.query('BEGIN');
 
     try {
       // Crear la empresa (con verificada = false por defecto)
@@ -97,16 +97,16 @@ const createCompany = async (req, res, next) => {
       );
 
       // Confirmar la transacción
-      await pool.query("COMMIT");
+      await pool.query('COMMIT');
 
       res.status(201).json({
         message:
-          "Empresa creada correctamente. Un administrador verificará tu empresa pronto.",
+          'Empresa creada correctamente. Un administrador verificará tu empresa pronto.',
         company,
       });
     } catch (error) {
       // Revertir la transacción en caso de error
-      await pool.query("ROLLBACK");
+      await pool.query('ROLLBACK');
       throw error;
     }
   } catch (error) {
@@ -119,19 +119,19 @@ const verifyCompany = async (req, res, next) => {
     const { verificada } = req.body;
 
     // Solo administradores pueden verificar empresas
-    if (req.user.rol !== "admin") {
+    if (req.user.rol !== 'admin') {
       return next(
-        new ForbiddenError("No tienes permiso para verificar empresas")
+        new ForbiddenError('No tienes permiso para verificar empresas')
       );
     }
 
     const companyResult = await pool.query(
-      "SELECT * FROM empresas WHERE id = $1",
+      'SELECT * FROM empresas WHERE id = $1',
       [id]
     );
 
     if (companyResult.rows.length === 0) {
-      return next(new NotFoundError("Empresa no encontrada"));
+      return next(new NotFoundError('Empresa no encontrada'));
     }
 
     const result = await pool.query(
@@ -146,8 +146,8 @@ const verifyCompany = async (req, res, next) => {
 
     res.json({
       message: verificada
-        ? "Empresa verificada correctamente"
-        : "Verificación de empresa removida",
+        ? 'Empresa verificada correctamente'
+        : 'Verificación de empresa removida',
       company: result.rows[0],
     });
   } catch (error) {
@@ -162,21 +162,21 @@ const updateCompany = async (req, res, next) => {
 
   try {
     const companyResult = await pool.query(
-      "SELECT id FROM empresas WHERE id = $1",
+      'SELECT id FROM empresas WHERE id = $1',
       [id]
     );
 
     if (companyResult.rows.length === 0) {
-      return next(new NotFoundError("Empresa no encontrada"));
+      return next(new NotFoundError('Empresa no encontrada'));
     }
 
     // Verificar permisos (solo el propietario o admin puede actualizar)
     if (
-      req.user.rol !== "admin" &&
-      (req.user.rol !== "empresa" || req.user.empresa_id != id)
+      req.user.rol !== 'admin' &&
+      (req.user.rol !== 'empresa' || req.user.empresa_id != id)
     ) {
       return next(
-        new ForbiddenError("No tiene permisos para actualizar esta empresa")
+        new ForbiddenError('No tiene permisos para actualizar esta empresa')
       );
     }
 
@@ -191,7 +191,7 @@ const updateCompany = async (req, res, next) => {
     );
 
     res.json({
-      message: "Empresa actualizada correctamente",
+      message: 'Empresa actualizada correctamente',
       company: result.rows[0],
     });
   } catch (error) {
@@ -205,24 +205,24 @@ const deleteCompany = async (req, res, next) => {
 
   try {
     const companyResult = await pool.query(
-      "SELECT id FROM empresas WHERE id = $1",
+      'SELECT id FROM empresas WHERE id = $1',
       [id]
     );
 
     if (companyResult.rows.length === 0) {
-      return next(new NotFoundError("Empresa no encontrada"));
+      return next(new NotFoundError('Empresa no encontrada'));
     }
 
     // Solo administradores pueden eliminar empresas
-    if (req.user.rol !== "admin") {
+    if (req.user.rol !== 'admin') {
       return next(
-        new ForbiddenError("No tiene permisos para eliminar empresas")
+        new ForbiddenError('No tiene permisos para eliminar empresas')
       );
     }
 
-    await pool.query("DELETE FROM empresas WHERE id = $1", [id]);
+    await pool.query('DELETE FROM empresas WHERE id = $1', [id]);
 
-    res.json({ message: "Empresa eliminada correctamente" });
+    res.json({ message: 'Empresa eliminada correctamente' });
   } catch (error) {
     next(error);
   }

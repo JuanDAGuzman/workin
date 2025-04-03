@@ -1,9 +1,9 @@
-const pool = require("../../config/db");
+const pool = require('../../config/db');
 const {
   NotFoundError,
   ForbiddenError,
   ConflictError,
-} = require("../../utils/errorClasses");
+} = require('../../utils/errorClasses');
 
 const getUserApplications = async (req, res, next) => {
   try {
@@ -34,23 +34,23 @@ const getJobApplications = async (req, res, next) => {
     const { empleo_id } = req.params;
 
     // Verificar si el empleo existe
-    const jobResult = await pool.query("SELECT * FROM empleos WHERE id = $1", [
+    const jobResult = await pool.query('SELECT * FROM empleos WHERE id = $1', [
       empleo_id,
     ]);
 
     if (jobResult.rows.length === 0) {
-      return next(new NotFoundError("Empleo no encontrado"));
+      return next(new NotFoundError('Empleo no encontrado'));
     }
 
     const job = jobResult.rows[0];
 
     // Verificar permisos (solo la empresa propietaria o admin pueden ver las postulaciones)
     if (
-      req.user.rol !== "admin" &&
-      (req.user.rol !== "empresa" || req.user.empresa_id != job.empresa_id)
+      req.user.rol !== 'admin' &&
+      (req.user.rol !== 'empresa' || req.user.empresa_id != job.empresa_id)
     ) {
       return next(
-        new ForbiddenError("No tienes permiso para ver estas postulaciones")
+        new ForbiddenError('No tienes permiso para ver estas postulaciones')
       );
     }
 
@@ -95,33 +95,33 @@ const createApplication = async (req, res, next) => {
     const { empleo_id } = req.body;
     const userId = req.user.id;
 
-    const jobResult = await pool.query("SELECT * FROM empleos WHERE id = $1", [
+    const jobResult = await pool.query('SELECT * FROM empleos WHERE id = $1', [
       empleo_id,
     ]);
 
     if (jobResult.rows.length === 0) {
-      return next(new NotFoundError("Empleo no encontrado"));
+      return next(new NotFoundError('Empleo no encontrado'));
     }
 
     // Verificar si el usuario ya ha aplicado a este empleo
     const existingApp = await pool.query(
-      "SELECT id FROM postulaciones WHERE empleo_id = $1 AND usuario_id = $2",
+      'SELECT id FROM postulaciones WHERE empleo_id = $1 AND usuario_id = $2',
       [empleo_id, userId]
     );
 
     if (existingApp.rows.length > 0) {
-      return next(new ConflictError("Ya has postulado a este empleo"));
+      return next(new ConflictError('Ya has postulado a este empleo'));
     }
 
     const userDisabilitiesResult = await pool.query(
-      "SELECT id FROM user_discapacidades WHERE user_id = $1",
+      'SELECT id FROM user_discapacidades WHERE user_id = $1',
       [userId]
     );
 
     if (userDisabilitiesResult.rows.length === 0) {
       return next(
         new Error(
-          "Debes registrar al menos una discapacidad antes de postularte. Por favor, ve a tu perfil y registra tu discapacidad."
+          'Debes registrar al menos una discapacidad antes de postularte. Por favor, ve a tu perfil y registra tu discapacidad.'
         )
       );
     }
@@ -137,7 +137,7 @@ const createApplication = async (req, res, next) => {
     );
 
     res.status(201).json({
-      message: "Postulación enviada con éxito",
+      message: 'Postulación enviada con éxito',
       application: result.rows[0],
     });
   } catch (error) {
@@ -152,16 +152,16 @@ const updateApplicationStatus = async (req, res, next) => {
 
     // Estados disponibles
     const estadosValidos = [
-      "pendiente",
-      "revisando",
-      "entrevista",
-      "rechazado",
-      "aceptado",
+      'pendiente',
+      'revisando',
+      'entrevista',
+      'rechazado',
+      'aceptado',
     ];
     if (!estadosValidos.includes(estado)) {
       return next(
         new Error(
-          `Estado inválido. Debe ser uno de: ${estadosValidos.join(", ")}`
+          `Estado inválido. Debe ser uno de: ${estadosValidos.join(', ')}`
         )
       );
     }
@@ -177,19 +177,19 @@ const updateApplicationStatus = async (req, res, next) => {
     );
 
     if (appResult.rows.length === 0) {
-      return next(new NotFoundError("Postulación no encontrada"));
+      return next(new NotFoundError('Postulación no encontrada'));
     }
 
     const application = appResult.rows[0];
 
     // Verificar permisos (solo la empresa propietaria o admin pueden actualizar)
     if (
-      req.user.rol !== "admin" &&
-      (req.user.rol !== "empresa" ||
+      req.user.rol !== 'admin' &&
+      (req.user.rol !== 'empresa' ||
         req.user.empresa_id != application.empresa_id)
     ) {
       return next(
-        new ForbiddenError("No tienes permiso para actualizar esta postulación")
+        new ForbiddenError('No tienes permiso para actualizar esta postulación')
       );
     }
 
@@ -204,7 +204,7 @@ const updateApplicationStatus = async (req, res, next) => {
     );
 
     res.json({
-      message: "Estado de postulación actualizado",
+      message: 'Estado de postulación actualizado',
       application: result.rows[0],
     });
   } catch (error) {
@@ -219,27 +219,27 @@ const deleteApplication = async (req, res, next) => {
     const userId = req.user.id;
 
     const appResult = await pool.query(
-      "SELECT * FROM postulaciones WHERE id = $1",
+      'SELECT * FROM postulaciones WHERE id = $1',
       [id]
     );
 
     if (appResult.rows.length === 0) {
-      return next(new NotFoundError("Postulación no encontrada"));
+      return next(new NotFoundError('Postulación no encontrada'));
     }
 
     const application = appResult.rows[0];
 
     // Solo el propietario o un admin pueden eliminar la postulación
-    if (req.user.rol !== "admin" && application.usuario_id !== userId) {
+    if (req.user.rol !== 'admin' && application.usuario_id !== userId) {
       return next(
-        new ForbiddenError("No tienes permiso para eliminar esta postulación")
+        new ForbiddenError('No tienes permiso para eliminar esta postulación')
       );
     }
 
     // Eliminar postulación
-    await pool.query("DELETE FROM postulaciones WHERE id = $1", [id]);
+    await pool.query('DELETE FROM postulaciones WHERE id = $1', [id]);
 
-    res.json({ message: "Postulación eliminada correctamente" });
+    res.json({ message: 'Postulación eliminada correctamente' });
   } catch (error) {
     next(error);
   }

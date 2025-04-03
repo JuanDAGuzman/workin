@@ -9,12 +9,12 @@ const requestPasswordReset = async (req, res, next) => {
 
   try {
     const userResult = await pool.query(
-      "SELECT id, nombre FROM users WHERE correo = $1",
+      'SELECT id, nombre FROM users WHERE correo = $1',
       [correo]
     );
 
     if (userResult.rows.length === 0) {
-      return next(new NotFoundError("Usuario no encontrado"));
+      return next(new NotFoundError('Usuario no encontrado'));
     }
 
     const user = userResult.rows[0];
@@ -29,12 +29,12 @@ const requestPasswordReset = async (req, res, next) => {
     try {
       await emailService.sendPasswordResetEmail(correo, user.nombre, resetToken);
       res.json({
-        message: "Se ha enviado un enlace de restablecimiento a tu correo",
+        message: 'Se ha enviado un enlace de restablecimiento a tu correo',
       });
     } catch (emailError) {
-      console.error("Error al enviar correo de restablecimiento:", emailError);
+      console.error('Error al enviar correo de restablecimiento:', emailError);
       res.json({
-        message: "Solicitud procesada, pero hubo un problema al enviar el correo",
+        message: 'Solicitud procesada, pero hubo un problema al enviar el correo',
         resetToken
       });
     }
@@ -55,12 +55,12 @@ const resetPassword = async (req, res, next) => {
     // Actualizar contraseña
     try {
       await authService.updateUserPassword(correo, token, nuevaClave);
-      res.json({ message: "Contraseña restablecida con éxito" });
+      res.json({ message: 'Contraseña restablecida con éxito' });
     } catch (updateError) {
-      next(new AuthenticationError("Token inválido o ya usado"));
+      next(new AuthenticationError('Token inválido o ya usado'));
     }
   } catch (error) {
-    next(new AuthenticationError("Token inválido o expirado"));
+    next(new AuthenticationError('Token inválido o expirado'));
   }
 };
 

@@ -1,4 +1,4 @@
-const { body, param } = require('express-validator');
+const { body, /*param*/ } = require('express-validator');
 
 // Validación para registro de usuario
 const validateUserRegistration = [

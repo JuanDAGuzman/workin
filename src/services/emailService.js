@@ -1,4 +1,4 @@
-const nodemailer = require("nodemailer");
+const nodemailer = require('nodemailer');
 
 // Configurar el transportador para Nodemailer
 const transporter = nodemailer.createTransport({
@@ -16,7 +16,7 @@ const sendEmailChangeVerification = async (nuevoCorreo, nombre, token) => {
     const info = await transporter.sendMail({
       from: '"WorkIN" <noreply@workin.com>',
       to: nuevoCorreo,
-      subject: "Confirma tu nuevo correo electrónico - WorkIN",
+      subject: 'Confirma tu nuevo correo electrónico - WorkIN',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
           <h1 style="color: #4a4a4a;">Cambio de correo electrónico</h1>
@@ -34,11 +34,11 @@ const sendEmailChangeVerification = async (nuevoCorreo, nombre, token) => {
       `,
     });
 
-    console.log("Correo de cambio de email enviado con éxito a:", nuevoCorreo);
-    console.log("ID del mensaje:", info.messageId);
+    console.log('Correo de cambio de email enviado con éxito a:', nuevoCorreo);
+    console.log('ID del mensaje:', info.messageId);
     return info;
   } catch (error) {
-    console.error("Error al enviar correo de cambio de email:", error);
+    console.error('Error al enviar correo de cambio de email:', error);
     throw error;
   }
 };
@@ -51,7 +51,7 @@ const sendVerificationEmail = async (correo, nombre, token) => {
     const info = await transporter.sendMail({
       from: '"WorkIN" <noreply@workin.com>',
       to: correo,
-      subject: "Verifica tu cuenta en WorkIN",
+      subject: 'Verifica tu cuenta en WorkIN',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
           <h1 style="color: #4a4a4a;">Bienvenido a WorkIN</h1>
@@ -68,11 +68,11 @@ const sendVerificationEmail = async (correo, nombre, token) => {
       `,
     });
 
-    console.log("Correo enviado con éxito a:", correo);
-    console.log("ID del mensaje:", info.messageId);
+    console.log('Correo enviado con éxito a:', correo);
+    console.log('ID del mensaje:', info.messageId);
     return info;
   } catch (error) {
-    console.error("Error al enviar correo:", error);
+    console.error('Error al enviar correo:', error);
     throw error;
   }
 };
@@ -85,7 +85,7 @@ const sendPasswordResetEmail = async (correo, nombre, token) => {
     const info = await transporter.sendMail({
       from: '"WorkIN" <noreply@workin.com>',
       to: correo,
-      subject: "Restablecimiento de contraseña - WorkIN",
+      subject: 'Restablecimiento de contraseña - WorkIN',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
           <h1 style="color: #4a4a4a;">Restablecimiento de contraseña</h1>
@@ -103,11 +103,11 @@ const sendPasswordResetEmail = async (correo, nombre, token) => {
       `,
     });
 
-    console.log("Correo de restablecimiento enviado con éxito a:", correo);
-    console.log("ID del mensaje:", info.messageId);
+    console.log('Correo de restablecimiento enviado con éxito a:', correo);
+    console.log('ID del mensaje:', info.messageId);
     return info;
   } catch (error) {
-    console.error("Error al enviar correo de restablecimiento:", error);
+    console.error('Error al enviar correo de restablecimiento:', error);
     throw error;
   }
 };

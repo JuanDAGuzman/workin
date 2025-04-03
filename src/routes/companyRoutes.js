@@ -1,30 +1,30 @@
-const express = require("express");
-const { body } = require("express-validator");
+const express = require('express');
+const { body } = require('express-validator');
 const router = express.Router();
-const companyController = require("../controllers/companies/companyController");
+const companyController = require('../controllers/companies/companyController');
 const {
   validateCompanyCreation,
   validateCompanyUpdate,
-} = require("../validations/companyValidations");
-const { validateRequest } = require("../middleware/validationMiddleware");
-const { protect, restrictTo } = require("../middleware/authMiddleware");
+} = require('../validations/companyValidations');
+const { validateRequest } = require('../middleware/validationMiddleware');
+const { protect, restrictTo } = require('../middleware/authMiddleware');
 
 // Rutas públicas
-router.get("/", companyController.getCompanies);
-router.get("/:id", companyController.getCompanyById);
+router.get('/', companyController.getCompanies);
+router.get('/:id', companyController.getCompanyById);
 
 // Validación para verificación
 const validateVerification = [
-  body("verificada")
+  body('verificada')
     .isBoolean()
-    .withMessage("El valor debe ser verdadero o falso"),
+    .withMessage('El valor debe ser verdadero o falso'),
 ];
 
 // Ruta para verificar una empresa (solo admin)
 router.put(
-  "/:id/verify",
+  '/:id/verify',
   protect,
-  restrictTo("admin"),
+  restrictTo('admin'),
   validateVerification,
   validateRequest,
   companyController.verifyCompany
@@ -32,23 +32,23 @@ router.put(
 
 // Rutas protegidas
 router.post(
-  "/",
+  '/',
   protect,
   validateCompanyCreation,
   validateRequest,
   companyController.createCompany
 );
 router.put(
-  "/:id",
+  '/:id',
   protect,
   validateCompanyUpdate,
   validateRequest,
   companyController.updateCompany
 );
 router.delete(
-  "/:id",
+  '/:id',
   protect,
-  restrictTo("admin"),
+  restrictTo('admin'),
   companyController.deleteCompany
 );
 

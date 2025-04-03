@@ -1,21 +1,21 @@
-const pool = require("../../config/db");
+const pool = require('../../config/db');
 const {
   NotFoundError,
   ForbiddenError,
-  ConflictError,
-} = require("../../utils/errorClasses");
+  /*ConflictError,*/
+} = require('../../utils/errorClasses');
 
 const getCompanyRatings = async (req, res, next) => {
   try {
     const { empresa_id } = req.params;
 
     const companyResult = await pool.query(
-      "SELECT * FROM empresas WHERE id = $1",
+      'SELECT * FROM empresas WHERE id = $1',
       [empresa_id]
     );
 
     if (companyResult.rows.length === 0) {
-      return next(new NotFoundError("Empresa no encontrada"));
+      return next(new NotFoundError('Empresa no encontrada'));
     }
 
     // Obtener las valoraciones
@@ -77,17 +77,17 @@ const createOrUpdateRating = async (req, res, next) => {
     const userId = req.user.id;
 
     const companyResult = await pool.query(
-      "SELECT * FROM empresas WHERE id = $1",
+      'SELECT * FROM empresas WHERE id = $1',
       [empresa_id]
     );
 
     if (companyResult.rows.length === 0) {
-      return next(new NotFoundError("Empresa no encontrada"));
+      return next(new NotFoundError('Empresa no encontrada'));
     }
 
     // Verificar si el usuario ya ha valorado esta empresa
     const existingRating = await pool.query(
-      "SELECT id FROM valoraciones WHERE empresa_id = $1 AND usuario_id = $2",
+      'SELECT id FROM valoraciones WHERE empresa_id = $1 AND usuario_id = $2',
       [empresa_id, userId]
     );
 
@@ -108,7 +108,7 @@ const createOrUpdateRating = async (req, res, next) => {
       await updateCompanyRating(empresa_id);
 
       res.json({
-        message: "Valoración actualizada correctamente",
+        message: 'Valoración actualizada correctamente',
         rating: result.rows[0],
       });
     } else {
@@ -126,7 +126,7 @@ const createOrUpdateRating = async (req, res, next) => {
       await updateCompanyRating(empresa_id);
 
       res.status(201).json({
-        message: "Valoración creada correctamente",
+        message: 'Valoración creada correctamente',
         rating: result.rows[0],
       });
     }
@@ -141,27 +141,27 @@ const deleteRating = async (req, res, next) => {
     const userId = req.user.id;
 
     const ratingResult = await pool.query(
-      "SELECT * FROM valoraciones WHERE id = $1",
+      'SELECT * FROM valoraciones WHERE id = $1',
       [id]
     );
 
     if (ratingResult.rows.length === 0) {
-      return next(new NotFoundError("Valoración no encontrada"));
+      return next(new NotFoundError('Valoración no encontrada'));
     }
 
     const rating = ratingResult.rows[0];
 
-    if (req.user.rol !== "admin" && rating.usuario_id !== userId) {
+    if (req.user.rol !== 'admin' && rating.usuario_id !== userId) {
       return next(
-        new ForbiddenError("No tienes permiso para eliminar esta valoración")
+        new ForbiddenError('No tienes permiso para eliminar esta valoración')
       );
     }
 
-    await pool.query("DELETE FROM valoraciones WHERE id = $1", [id]);
+    await pool.query('DELETE FROM valoraciones WHERE id = $1', [id]);
 
     await updateCompanyRating(rating.empresa_id);
 
-    res.json({ message: "Valoración eliminada correctamente" });
+    res.json({ message: 'Valoración eliminada correctamente' });
   } catch (error) {
     next(error);
   }
@@ -193,7 +193,7 @@ const updateCompanyRating = async (empresaId) => {
 
     return promedio;
   } catch (error) {
-    console.error("Error al actualizar calificación de empresa:", error);
+    console.error('Error al actualizar calificación de empresa:', error);
     throw error;
   }
 };

@@ -1,14 +1,14 @@
-require("dotenv").config();
-const express = require("express");
-const cors = require("cors");
-const helmet = require("helmet");
-const { Pool } = require("pg");
-const routes = require("./src/routes/index");
-const { errorHandler, notFoundHandler } = require("./src/middleware/errorMiddleware");
+require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const helmet = require('helmet');
+const { Pool } = require('pg');
+const routes = require('./src/routes/index');
+const { errorHandler, notFoundHandler } = require('./src/middleware/errorMiddleware');
 
 // gRPC
-const grpc = require("@grpc/grpc-js");
-const protoLoader = require("@grpc/proto-loader");
+const grpc = require('@grpc/grpc-js');
+const protoLoader = require('@grpc/proto-loader');
 
 // conexión a PostgreSQL
 const pool = new Pool({
@@ -21,15 +21,15 @@ const pool = new Pool({
 
 // conexión a la base de datos
 pool.connect()
-  .then(() => console.log("🟢 Conectado a PostgreSQL"))
-  .catch(err => console.error("🔴 Error de conexión a PostgreSQL", err));
+  .then(() => console.log('🟢 Conectado a PostgreSQL'))
+  .catch(err => console.error('🔴 Error de conexión a PostgreSQL', err));
 
 // Configurar Express
 const app = express();
 app.use(express.json());
 app.use(cors());
 app.use(helmet());
-app.use("/api", routes);
+app.use('/api', routes);
 app.all('*', notFoundHandler);
 app.use(errorHandler);
 
@@ -42,7 +42,7 @@ app.listen(PORT, () => {
 // ======================= gRPC =======================
 
 // Cargar el archivo .proto
-const PROTO_PATH = "./user.proto";
+const PROTO_PATH = './user.proto';
 const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
   keepCase: true,
   longs: String,
@@ -56,7 +56,7 @@ const userProto = grpc.loadPackageDefinition(packageDefinition).user;
 const getUserByEmail = async (call, callback) => {
   try {
     const { email } = call.request;
-    const query = "SELECT id, nombre, correo FROM users WHERE correo = $1";
+    const query = 'SELECT id, nombre, correo FROM users WHERE correo = $1';
     const values = [email];
 
     const result = await pool.query(query, values);
@@ -64,15 +64,15 @@ const getUserByEmail = async (call, callback) => {
     if (result.rows.length === 0) {
       return callback({
         code: grpc.status.NOT_FOUND,
-        message: "Usuario no encontrado"
+        message: 'Usuario no encontrado'
       });
     }
 
     callback(null, result.rows[0]);
-  } catch (error) {
+  } catch (_error) {
     callback({
       code: grpc.status.INTERNAL,
-      message: "Error en el servidor"
+      message: 'Error en el servidor'
     });
   }
 };
@@ -81,7 +81,7 @@ const getUserByEmail = async (call, callback) => {
 const grpcServer = new grpc.Server();
 grpcServer.addService(userProto.UserService.service, { GetUserByEmail: getUserByEmail });
 
-const GRPC_PORT = "0.0.0.0:50051";
+const GRPC_PORT = '0.0.0.0:50051';
 grpcServer.bindAsync(GRPC_PORT, grpc.ServerCredentials.createInsecure(), () => {
   console.log(`🟢 Servidor gRPC corriendo en ${GRPC_PORT}`);
   grpcServer.start();

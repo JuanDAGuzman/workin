@@ -1,9 +1,9 @@
-const jwt = require("jsonwebtoken");
+const jwt = require('jsonwebtoken');
 const {
   AuthenticationError,
   ForbiddenError,
-} = require("../utils/errorClasses");
-const authService = require("../services/authService");
+} = require('../utils/errorClasses');
+//const authService = require("../services/authService");
 const pool = require('../config/db');
 
 // Middleware para verificar si el usuario está autenticado
@@ -13,16 +13,16 @@ const protect = async (req, res, next) => {
     let token;
     if (
       req.headers.authorization &&
-      req.headers.authorization.startsWith("Bearer")
+      req.headers.authorization.startsWith('Bearer')
     ) {
-      token = req.headers.authorization.split(" ")[1];
+      token = req.headers.authorization.split(' ')[1];
     }
 
     // Verificar que el token existe
     if (!token) {
       return next(
         new AuthenticationError(
-          "No ha iniciado sesión. Por favor, inicie sesión para obtener acceso."
+          'No ha iniciado sesión. Por favor, inicie sesión para obtener acceso.'
         )
       );
     }
@@ -32,13 +32,13 @@ const protect = async (req, res, next) => {
 
     // 3) Verificar si el usuario aún existe
     const userResult = await pool.query(
-      "SELECT id, nombre, correo, verificado, rol, empresa_id FROM users WHERE id = $1",
+      'SELECT id, nombre, correo, verificado, rol, empresa_id FROM users WHERE id = $1',
       [decoded.id]
     );
 
     if (userResult.rows.length === 0) {
       return next(
-        new AuthenticationError("El usuario de este token ya no existe.")
+        new AuthenticationError('El usuario de este token ya no existe.')
       );
     }
 
@@ -46,17 +46,17 @@ const protect = async (req, res, next) => {
     req.user = userResult.rows[0];
     next();
   } catch (error) {
-    if (error.name === "JsonWebTokenError") {
+    if (error.name === 'JsonWebTokenError') {
       return next(
         new AuthenticationError(
-          "Token inválido. Por favor inicie sesión nuevamente."
+          'Token inválido. Por favor inicie sesión nuevamente.'
         )
       );
     }
-    if (error.name === "TokenExpiredError") {
+    if (error.name === 'TokenExpiredError') {
       return next(
         new AuthenticationError(
-          "Su token ha expirado. Por favor inicie sesión nuevamente."
+          'Su token ha expirado. Por favor inicie sesión nuevamente.'
         )
       );
     }
@@ -70,13 +70,13 @@ const restrictTo = (...roles) => {
     // El middleware protect debe usarse antes
     if (!req.user || !req.user.rol) {
       return next(
-        new ForbiddenError("Usuario no encontrado o sin rol asignado")
+        new ForbiddenError('Usuario no encontrado o sin rol asignado')
       );
     }
 
     if (!roles.includes(req.user.rol)) {
       return next(
-        new ForbiddenError("No tiene permiso para realizar esta acción")
+        new ForbiddenError('No tiene permiso para realizar esta acción')
       );
     }
 

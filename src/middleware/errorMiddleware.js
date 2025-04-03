@@ -40,7 +40,7 @@ const sendErrorProd = (err, res) => {
 };
 
 // Middleware principal de manejo de errores
-const errorHandler = (err, req, res, next) => {
+const errorHandler = (err, req, res,/*next*/) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
   

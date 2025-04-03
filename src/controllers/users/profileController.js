@@ -1,13 +1,13 @@
-const pool = require("../../config/db");
-const jwt = require("jsonwebtoken");
-const authService = require("../../services/authService");
-const emailService = require("../../services/emailService");
+const pool = require('../../config/db');
+const jwt = require('jsonwebtoken');
+const authService = require('../../services/authService');
+const emailService = require('../../services/emailService');
 const {
   NotFoundError,
-  ForbiddenError,
+  /*ForbiddenError,*/
   ConflictError,
   AuthenticationError,
-} = require("../../utils/errorClasses");
+} = require('../../utils/errorClasses');
 
 const getUserProfile = async (req, res, next) => {
   try {
@@ -23,7 +23,7 @@ const getUserProfile = async (req, res, next) => {
     );
 
     if (result.rows.length === 0) {
-      return next(new NotFoundError("Usuario no encontrado"));
+      return next(new NotFoundError('Usuario no encontrado'));
     }
 
     // Si tiene discapacidad, obtener información
@@ -58,12 +58,12 @@ const updateUserProfile = async (req, res, next) => {
     const { nombre, sexo } = req.body;
 
     // Verificar si el usuario existe
-    const userExists = await pool.query("SELECT id FROM users WHERE id = $1", [
+    const userExists = await pool.query('SELECT id FROM users WHERE id = $1', [
       userId,
     ]);
 
     if (userExists.rows.length === 0) {
-      return next(new NotFoundError("Usuario no encontrado"));
+      return next(new NotFoundError('Usuario no encontrado'));
     }
 
     // Actualizar información
@@ -80,7 +80,7 @@ const updateUserProfile = async (req, res, next) => {
     );
 
     res.json({
-      message: "Perfil actualizado correctamente",
+      message: 'Perfil actualizado correctamente',
       user: result.rows[0],
     });
   } catch (error) {
@@ -94,12 +94,12 @@ const requestEmailChange = async (req, res, next) => {
     const { nuevoCorreo, clave } = req.body;
 
     const userResult = await pool.query(
-      "SELECT id, nombre, correo, clave FROM users WHERE id = $1",
+      'SELECT id, nombre, correo, clave FROM users WHERE id = $1',
       [userId]
     );
 
     if (userResult.rows.length === 0) {
-      return next(new NotFoundError("Usuario no encontrado"));
+      return next(new NotFoundError('Usuario no encontrado'));
     }
 
     const user = userResult.rows[0];
@@ -107,18 +107,18 @@ const requestEmailChange = async (req, res, next) => {
     // Verificar contraseña actual
     const isMatch = await authService.comparePasswords(clave, user.clave);
     if (!isMatch) {
-      return next(new AuthenticationError("Contraseña incorrecta"));
+      return next(new AuthenticationError('Contraseña incorrecta'));
     }
 
     // Verificar que el nuevo correo no esté en uso
     const emailExists = await pool.query(
-      "SELECT id FROM users WHERE correo = $1 AND id != $2",
+      'SELECT id FROM users WHERE correo = $1 AND id != $2',
       [nuevoCorreo, userId]
     );
 
     if (emailExists.rows.length > 0) {
       return next(
-        new ConflictError("El correo ya está en uso por otro usuario")
+        new ConflictError('El correo ya está en uso por otro usuario')
       );
     }
 
@@ -130,7 +130,7 @@ const requestEmailChange = async (req, res, next) => {
         newEmail: nuevoCorreo,
       },
       process.env.JWT_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: '1h' }
     );
 
     // Guardar token en la base de datos
@@ -153,13 +153,13 @@ const requestEmailChange = async (req, res, next) => {
 
       res.json({
         message:
-          "Se ha enviado un enlace de verificación a tu nuevo correo electrónico",
+          'Se ha enviado un enlace de verificación a tu nuevo correo electrónico',
       });
     } catch (emailError) {
-      console.error("Error al enviar correo:", emailError);
+      console.error('Error al enviar correo:', emailError);
       res.json({
         message:
-          "Solicitud procesada, pero hubo un problema al enviar el correo de verificación",
+          'Solicitud procesada, pero hubo un problema al enviar el correo de verificación',
       });
     }
   } catch (error) {
@@ -171,34 +171,34 @@ const requestEmailChange = async (req, res, next) => {
 const confirmEmailChange = async (req, res, next) => {
   try {
     const { token } = req.params;
-    console.log("Token recibido:", token);
+    console.log('Token recibido:', token);
 
     // Verificar token
     let decoded;
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET);
-      console.log("Token decodificado:", decoded);
+      console.log('Token decodificado:', decoded);
     } catch (tokenError) {
-      console.error("Error al verificar token:", tokenError.message);
-      return next(new AuthenticationError("Token inválido o expirado"));
+      console.error('Error al verificar token:', tokenError.message);
+      return next(new AuthenticationError('Token inválido o expirado'));
     }
 
     const { userId, newEmail } = decoded;
 
     // Verificar si el token existe en la base de datos
     const tokenCheck = await pool.query(
-      `SELECT token_verificacion FROM users WHERE id = $1`,
+      'SELECT token_verificacion FROM users WHERE id = $1',
       [userId]
     );
 
-    console.log("Resultado verificación token en BD:", tokenCheck.rows[0]);
+    console.log('Resultado verificación token en BD:', tokenCheck.rows[0]);
 
     if (
       tokenCheck.rows.length === 0 ||
       tokenCheck.rows[0].token_verificacion !== token
     ) {
-      console.log("Token no coincide o usuario no encontrado");
-      return next(new NotFoundError("Token inválido o ya usado"));
+      console.log('Token no coincide o usuario no encontrado');
+      return next(new NotFoundError('Token inválido o ya usado'));
     }
 
     // Actualizar correo
@@ -212,22 +212,22 @@ const confirmEmailChange = async (req, res, next) => {
       [newEmail, userId, token]
     );
 
-    console.log("Resultado actualización:", result.rows);
+    console.log('Resultado actualización:', result.rows);
 
     if (result.rows.length === 0) {
       return next(
         new NotFoundError(
-          "No se pudo actualizar el correo. Token inválido o ya usado"
+          'No se pudo actualizar el correo. Token inválido o ya usado'
         )
       );
     }
 
     res.json({
-      message: "Correo electrónico actualizado correctamente",
+      message: 'Correo electrónico actualizado correctamente',
       user: result.rows[0],
     });
   } catch (error) {
-    console.error("Error general:", error);
+    console.error('Error general:', error);
     next(error);
   }
 };
@@ -239,12 +239,12 @@ const changePassword = async (req, res, next) => {
     const { claveActual, nuevaClave } = req.body;
 
     const userResult = await pool.query(
-      "SELECT id, clave FROM users WHERE id = $1",
+      'SELECT id, clave FROM users WHERE id = $1',
       [userId]
     );
 
     if (userResult.rows.length === 0) {
-      return next(new NotFoundError("Usuario no encontrado"));
+      return next(new NotFoundError('Usuario no encontrado'));
     }
 
     const user = userResult.rows[0];
@@ -252,7 +252,7 @@ const changePassword = async (req, res, next) => {
     // Verificar contraseña actual
     const isMatch = await authService.comparePasswords(claveActual, user.clave);
     if (!isMatch) {
-      return next(new AuthenticationError("Contraseña actual incorrecta"));
+      return next(new AuthenticationError('Contraseña actual incorrecta'));
     }
 
     // Encriptar nueva contraseña
@@ -269,7 +269,7 @@ const changePassword = async (req, res, next) => {
     );
 
     res.json({
-      message: "Contraseña actualizada correctamente",
+      message: 'Contraseña actualizada correctamente',
     });
   } catch (error) {
     next(error);

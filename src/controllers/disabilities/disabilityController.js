@@ -1,5 +1,5 @@
-const pool = require("../../config/db");
-const { NotFoundError, ForbiddenError } = require("../../utils/errorClasses");
+const pool = require('../../config/db');
+const { NotFoundError, ForbiddenError } = require('../../utils/errorClasses');
 
 const getAllDisabilities = async (req, res, next) => {
   try {
@@ -27,7 +27,7 @@ const getDisabilityById = async (req, res, next) => {
     );
 
     if (result.rows.length === 0) {
-      return next(new NotFoundError("Discapacidad no encontrada"));
+      return next(new NotFoundError('Discapacidad no encontrada'));
     }
 
     res.json(result.rows[0]);
@@ -41,9 +41,9 @@ const createDisability = async (req, res, next) => {
     const { nombre } = req.body;
 
     // Solo administradores pueden crear nuevas discapacidades
-    if (req.user.rol !== "admin") {
+    if (req.user.rol !== 'admin') {
       return next(
-        new ForbiddenError("No tienes permiso para crear discapacidades")
+        new ForbiddenError('No tienes permiso para crear discapacidades')
       );
     }
 
@@ -57,7 +57,7 @@ const createDisability = async (req, res, next) => {
     );
 
     res.status(201).json({
-      message: "Discapacidad creada correctamente",
+      message: 'Discapacidad creada correctamente',
       disability: result.rows[0],
     });
   } catch (error) {

@@ -1,25 +1,25 @@
-const pool = require("../../config/db");
-const crypto = require("crypto");
+const pool = require('../../config/db');
+const crypto = require('crypto');
 const {
   NotFoundError,
   ForbiddenError,
-  ConflictError,
-} = require("../../utils/errorClasses");
+  /*ConflictError*/
+} = require('../../utils/errorClasses');
 
 // Generar código de invitación para administrador (solo superadmin)
 const generateAdminInviteCode = async (req, res, next) => {
   try {
     // Solo superadmin puede generar estos códigos
-    if (req.user.rol !== "admin") {
+    if (req.user.rol !== 'admin') {
       return next(
         new ForbiddenError(
-          "No tienes permiso para generar códigos de invitación"
+          'No tienes permiso para generar códigos de invitación'
         )
       );
     }
 
     // Generar código único
-    const inviteCode = crypto.randomBytes(16).toString("hex");
+    const inviteCode = crypto.randomBytes(16).toString('hex');
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7); // Expira en 7 días
 
@@ -33,7 +33,7 @@ const generateAdminInviteCode = async (req, res, next) => {
     );
 
     res.json({
-      message: "Código de invitación generado correctamente",
+      message: 'Código de invitación generado correctamente',
       inviteCode,
       expiresAt,
     });
@@ -58,7 +58,7 @@ const activateAdminRole = async (req, res, next) => {
 
     if (codeResult.rows.length === 0) {
       return next(
-        new NotFoundError("Código de invitación inválido o expirado")
+        new NotFoundError('Código de invitación inválido o expirado')
       );
     }
 
@@ -83,8 +83,8 @@ const activateAdminRole = async (req, res, next) => {
     );
 
     res.json({
-      message: "Rol de administrador activado correctamente",
-      rol: "admin",
+      message: 'Rol de administrador activado correctamente',
+      rol: 'admin',
     });
   } catch (error) {
     next(error);

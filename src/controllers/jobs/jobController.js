@@ -1,5 +1,5 @@
-const pool = require("../../config/db");
-const { NotFoundError, ForbiddenError } = require("../../utils/errorClasses");
+const pool = require('../../config/db');
+const { NotFoundError, ForbiddenError } = require('../../utils/errorClasses');
 
 // Obtener todos los empleos con paginación y filtros
 const getJobs = async (req, res, next) => {
@@ -11,8 +11,8 @@ const getJobs = async (req, res, next) => {
       titulo,
       salario_min,
       salario_max,
-      ordenar_por = "fecha_publicacion",
-      orden = "DESC",
+      ordenar_por = 'fecha_publicacion',
+      orden = 'DESC',
     } = req.query;
 
     const offset = (page - 1) * limit;
@@ -68,7 +68,7 @@ const getJobs = async (req, res, next) => {
     `;
 
     // Agregar los mismos filtros a la consulta de conteo
-    if (empresa_id) countQuery += ` AND e.empresa_id = $1`;
+    if (empresa_id) countQuery += ' AND e.empresa_id = $1';
     if (titulo)
       countQuery += ` AND e.titulo ILIKE $${params.indexOf(titulo) + 1}`;
     if (salario_min)
@@ -112,7 +112,7 @@ const getJobById = async (req, res, next) => {
     );
 
     if (result.rows.length === 0) {
-      return next(new NotFoundError("Empleo no encontrado"));
+      return next(new NotFoundError('Empleo no encontrado'));
     }
 
     res.json(result.rows[0]);
@@ -126,33 +126,33 @@ const createJob = async (req, res, next) => {
     const { titulo, descripcion, requisitos, salario, empresa_id } = req.body;
 
     // Verificar si el usuario es parte de la empresa o es admin
-    if (req.user.rol !== "admin" && req.user.rol !== "empresa") {
+    if (req.user.rol !== 'admin' && req.user.rol !== 'empresa') {
       return next(
-        new ForbiddenError("No tienes permiso para publicar empleos")
+        new ForbiddenError('No tienes permiso para publicar empleos')
       );
     }
 
     // Si es empresa, solo puede crear empleos para su propia empresa
-    if (req.user.rol === "empresa" && req.user.empresa_id != empresa_id) {
+    if (req.user.rol === 'empresa' && req.user.empresa_id != empresa_id) {
       return next(
-        new ForbiddenError("Solo puede crear empleos para su propia empresa")
+        new ForbiddenError('Solo puede crear empleos para su propia empresa')
       );
     }
 
-    if (req.user.rol !== "admin") {
+    if (req.user.rol !== 'admin') {
       const companyResult = await pool.query(
-        "SELECT verificada FROM empresas WHERE id = $1",
+        'SELECT verificada FROM empresas WHERE id = $1',
         [empresa_id]
       );
 
       if (companyResult.rows.length === 0) {
-        return next(new NotFoundError("Empresa no encontrada"));
+        return next(new NotFoundError('Empresa no encontrada'));
       }
 
       if (!companyResult.rows[0].verificada) {
         return next(
           new ForbiddenError(
-            "Tu empresa aún no ha sido verificada. No puedes publicar empleos hasta que un administrador verifique tu empresa."
+            'Tu empresa aún no ha sido verificada. No puedes publicar empleos hasta que un administrador verifique tu empresa.'
           )
         );
       }
@@ -181,23 +181,23 @@ const updateJob = async (req, res, next) => {
     const { titulo, descripcion, requisitos, salario } = req.body;
 
     // Verificar si el empleo existe
-    const jobResult = await pool.query("SELECT * FROM empleos WHERE id = $1", [
+    const jobResult = await pool.query('SELECT * FROM empleos WHERE id = $1', [
       id,
     ]);
 
     if (jobResult.rows.length === 0) {
-      return next(new NotFoundError("Empleo no encontrado"));
+      return next(new NotFoundError('Empleo no encontrado'));
     }
 
     const job = jobResult.rows[0];
 
     // Verificar permisos (solo admin o empresa pueden actualizar)
     if (
-      req.user.rol !== "admin" &&
-      (req.user.rol !== "empresa" || req.user.empresa_id != job.empresa_id)
+      req.user.rol !== 'admin' &&
+      (req.user.rol !== 'empresa' || req.user.empresa_id != job.empresa_id)
     ) {
       return next(
-        new ForbiddenError("No tienes permiso para actualizar este empleo")
+        new ForbiddenError('No tienes permiso para actualizar este empleo')
       );
     }
 
@@ -225,28 +225,28 @@ const deleteJob = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    const jobResult = await pool.query("SELECT * FROM empleos WHERE id = $1", [
+    const jobResult = await pool.query('SELECT * FROM empleos WHERE id = $1', [
       id,
     ]);
 
     if (jobResult.rows.length === 0) {
-      return next(new NotFoundError("Empleo no encontrado"));
+      return next(new NotFoundError('Empleo no encontrado'));
     }
 
     const job = jobResult.rows[0];
 
     if (
-      req.user.rol !== "admin" &&
-      (req.user.rol !== "empresa" || req.user.empresa_id != job.empresa_id)
+      req.user.rol !== 'admin' &&
+      (req.user.rol !== 'empresa' || req.user.empresa_id != job.empresa_id)
     ) {
       return next(
-        new ForbiddenError("No tienes permiso para eliminar este empleo")
+        new ForbiddenError('No tienes permiso para eliminar este empleo')
       );
     }
 
-    await pool.query("DELETE FROM empleos WHERE id = $1", [id]);
+    await pool.query('DELETE FROM empleos WHERE id = $1', [id]);
 
-    res.json({ message: "Empleo eliminado correctamente" });
+    res.json({ message: 'Empleo eliminado correctamente' });
   } catch (error) {
     next(error);
   }

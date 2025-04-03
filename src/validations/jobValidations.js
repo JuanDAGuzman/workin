@@ -1,43 +1,43 @@
 // src/validations/jobValidations.js
-const { body } = require("express-validator");
+const { body } = require('express-validator');
 
 const validateJobCreation = [
-  body("titulo")
+  body('titulo')
     .notEmpty()
-    .withMessage("El título es obligatorio")
+    .withMessage('El título es obligatorio')
     .isLength({ min: 5, max: 150 })
-    .withMessage("El título debe tener entre 5 y 150 caracteres"),
+    .withMessage('El título debe tener entre 5 y 150 caracteres'),
 
-  body("descripcion").notEmpty().withMessage("La descripción es obligatoria"),
+  body('descripcion').notEmpty().withMessage('La descripción es obligatoria'),
 
-  body("requisitos").notEmpty().withMessage("Los requisitos son obligatorios"),
+  body('requisitos').notEmpty().withMessage('Los requisitos son obligatorios'),
 
-  body("salario")
+  body('salario')
     .optional()
     .isNumeric()
-    .withMessage("El salario debe ser un número"),
+    .withMessage('El salario debe ser un número'),
 
-  body("empresa_id")
+  body('empresa_id')
     .notEmpty()
-    .withMessage("El ID de la empresa es obligatorio")
+    .withMessage('El ID de la empresa es obligatorio')
     .isNumeric()
-    .withMessage("El ID de la empresa debe ser un número"),
+    .withMessage('El ID de la empresa debe ser un número'),
 ];
 
 const validateJobUpdate = [
-  body("titulo")
+  body('titulo')
     .optional()
     .isLength({ min: 5, max: 150 })
-    .withMessage("El título debe tener entre 5 y 150 caracteres"),
+    .withMessage('El título debe tener entre 5 y 150 caracteres'),
 
-  body("descripcion").optional(),
+  body('descripcion').optional(),
 
-  body("requisitos").optional(),
+  body('requisitos').optional(),
 
-  body("salario")
+  body('salario')
     .optional()
     .isNumeric()
-    .withMessage("El salario debe ser un número"),
+    .withMessage('El salario debe ser un número'),
 ];
 
 module.exports = {

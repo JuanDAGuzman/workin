@@ -24,8 +24,9 @@ const getUserByEmail = async (req, res, next) => {
       });
     }
 
-    // Eliminar la contraseña antes de enviar la respuesta
-    const { password, ...userWithoutPassword } = result.rows[0];
+    // Copiar el objeto usuario sin incluir la contraseña
+    const userWithoutPassword = { ...result.rows[0] };
+    delete userWithoutPassword.password;
 
     res.status(200).json(userWithoutPassword);
   } catch (error) {

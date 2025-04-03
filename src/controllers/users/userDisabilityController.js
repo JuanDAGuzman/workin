@@ -1,9 +1,9 @@
-const pool = require("../../config/db");
+const pool = require('../../config/db');
 const {
   NotFoundError,
   ForbiddenError,
   ConflictError,
-} = require("../../utils/errorClasses");
+} = require('../../utils/errorClasses');
 
 const getUserDisabilities = async (req, res, next) => {
   try {
@@ -31,12 +31,12 @@ const getUserDisabilitiesById = async (req, res, next) => {
     const { id } = req.params;
 
     if (
-      req.user.rol !== "admin" &&
-      req.user.rol !== "empresa" &&
+      req.user.rol !== 'admin' &&
+      req.user.rol !== 'empresa' &&
       req.user.id != id
     ) {
       return next(
-        new ForbiddenError("No tienes permiso para ver esta información")
+        new ForbiddenError('No tienes permiso para ver esta información')
       );
     }
 
@@ -63,21 +63,21 @@ const registerUserDisability = async (req, res, next) => {
     const userId = req.user.id;
 
     const disabilityExists = await pool.query(
-      "SELECT id FROM discapacidades WHERE id = $1",
+      'SELECT id FROM discapacidades WHERE id = $1',
       [discapacidad_id]
     );
 
     if (disabilityExists.rows.length === 0) {
-      return next(new NotFoundError("Discapacidad no encontrada"));
+      return next(new NotFoundError('Discapacidad no encontrada'));
     }
 
     const existingRecord = await pool.query(
-      "SELECT id FROM user_discapacidades WHERE user_id = $1 AND discapacidad_id = $2",
+      'SELECT id FROM user_discapacidades WHERE user_id = $1 AND discapacidad_id = $2',
       [userId, discapacidad_id]
     );
 
     if (existingRecord.rows.length > 0) {
-      return next(new ConflictError("Ya tienes registrada esta discapacidad"));
+      return next(new ConflictError('Ya tienes registrada esta discapacidad'));
     }
 
     // Registrar la discapacidad
@@ -101,7 +101,7 @@ const registerUserDisability = async (req, res, next) => {
     );
 
     res.status(201).json({
-      message: "Discapacidad registrada correctamente",
+      message: 'Discapacidad registrada correctamente',
       userDisability: result.rows[0],
     });
   } catch (error) {
@@ -118,20 +118,20 @@ const updateUserDisability = async (req, res, next) => {
 
     // Verificar si existe el registro
     const recordResult = await pool.query(
-      "SELECT * FROM user_discapacidades WHERE id = $1",
+      'SELECT * FROM user_discapacidades WHERE id = $1',
       [id]
     );
 
     if (recordResult.rows.length === 0) {
-      return next(new NotFoundError("Registro de discapacidad no encontrado"));
+      return next(new NotFoundError('Registro de discapacidad no encontrado'));
     }
 
     const record = recordResult.rows[0];
 
     // Verificar permisos
-    if (record.user_id !== userId && req.user.rol !== "admin") {
+    if (record.user_id !== userId && req.user.rol !== 'admin') {
       return next(
-        new ForbiddenError("No tienes permiso para modificar este registro")
+        new ForbiddenError('No tienes permiso para modificar este registro')
       );
     }
 
@@ -148,7 +148,7 @@ const updateUserDisability = async (req, res, next) => {
     );
 
     res.json({
-      message: "Información de discapacidad actualizada",
+      message: 'Información de discapacidad actualizada',
       userDisability: result.rows[0],
     });
   } catch (error) {
@@ -162,23 +162,23 @@ const deleteUserDisability = async (req, res, next) => {
     const userId = req.user.id;
 
     const recordResult = await pool.query(
-      "SELECT * FROM user_discapacidades WHERE id = $1",
+      'SELECT * FROM user_discapacidades WHERE id = $1',
       [id]
     );
 
     if (recordResult.rows.length === 0) {
-      return next(new NotFoundError("Registro de discapacidad no encontrado"));
+      return next(new NotFoundError('Registro de discapacidad no encontrado'));
     }
 
     const record = recordResult.rows[0];
 
-    if (record.user_id !== userId && req.user.rol !== "admin") {
+    if (record.user_id !== userId && req.user.rol !== 'admin') {
       return next(
-        new ForbiddenError("No tienes permiso para eliminar este registro")
+        new ForbiddenError('No tienes permiso para eliminar este registro')
       );
     }
 
-    await pool.query("DELETE FROM user_discapacidades WHERE id = $1", [id]);
+    await pool.query('DELETE FROM user_discapacidades WHERE id = $1', [id]);
 
     // Si el usuario tenía esta discapacidad como principal, actualizar a NULL
     await pool.query(
@@ -190,7 +190,7 @@ const deleteUserDisability = async (req, res, next) => {
       [userId, record.discapacidad_id]
     );
 
-    res.json({ message: "Registro de discapacidad eliminado correctamente" });
+    res.json({ message: 'Registro de discapacidad eliminado correctamente' });
   } catch (error) {
     next(error);
   }
